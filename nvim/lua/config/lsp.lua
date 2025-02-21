@@ -96,6 +96,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
 })
 
 -- Snippets engine
+require('luasnip.loaders.from_vscode').lazy_load({
+	paths = '~/.config/nvim/snippets/vscode'
+})
 require('luasnip.loaders.from_vscode').lazy_load()
 
 -- Autocomplete configuration
@@ -113,9 +116,10 @@ cmp.setup({
 	},
 	sources = {
 		{ name = 'path' },
-		{ name = 'nvim_lsp', keyword_length = 1 },
-		{ name = 'buffer',   keyword_length = 3 },
-		{ name = 'luasnip',  keyword_length = 2 },
+		{ name = 'nvim_lsp',      keyword_length = 1 },
+		{ name = 'buffer',        keyword_length = 3 },
+		{ name = 'luasnip',       keyword_length = 2 },
+		{ name = 'luasnip_choice' },
 	},
 	window = {
 		documentation = cmp.config.window.bordered()
@@ -126,6 +130,7 @@ cmp.setup({
 			local menu_icon = {
 				nvim_lsp = 'λ',
 				luasnip = '⋗',
+				luasnip_choice = '⋗',
 				buffer = 'Ω',
 				path = '🖫',
 			}
@@ -148,7 +153,7 @@ cmp.setup({
 		['<C-y>'] = cmp.mapping.confirm({ select = true }),
 		['<CR>'] = cmp.mapping.confirm({ select = false }),
 
-		['<C-f>'] = cmp.mapping(function(fallback)
+		['<C-n>'] = cmp.mapping(function(fallback)
 			if luasnip.jumpable(1) then
 				luasnip.jump(1)
 			else
@@ -156,7 +161,7 @@ cmp.setup({
 			end
 		end, { 'i', 's' }),
 
-		['<C-b>'] = cmp.mapping(function(fallback)
+		['<C-p>'] = cmp.mapping(function(fallback)
 			if luasnip.jumpable(-1) then
 				luasnip.jump(-1)
 			else
