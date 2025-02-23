@@ -1,0 +1,15 @@
+{
+	"VSCode-style snippet": {
+		"prefix": ";;snippet",
+		"body": [
+			"\"${1:snippet-name}\": {",
+			"\t\"prefix\": \";;${2:snippet-trigger}\",",
+			"\t\"body\": [",
+			"\t\t\"${3:snippet-body}\"",
+			"\t],",
+			"\t\"description\": \"${4:snippet-description}\"",
+			"}"
+		],
+		"description": "Adds a new vscode-style snippet."
+	}
+}

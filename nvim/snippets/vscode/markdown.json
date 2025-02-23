@@ -1,12 +1,4 @@
 {
-	"Test Prefix": {
-		"prefix": ";;custom",
-		"body": [
-			"Weee: ${1:foo}",
-			"Yeah: ${2:bar}"
-		],
-		"description": "This does nothing, really."
-	},
 	"Frontmatter metadata": {
 		"prefix": ";;metadata",
 		"body": [
@@ -16,9 +8,19 @@
 			"description: ${2:description}",
 			"draft: ${3|false,true|}",
 			"tags:",
-			"  - ${4:some_tag}",
+			"\t- ${4:some_tag}",
 			"---"
 		],
 		"description": "Adds frontmatter metadata to the document."
+	},
+	"Mermaid flowchart": {
+		"prefix": ";;mermaid-flowchart",
+		"body": [
+			"```mermaid",
+			"\tflowchart",
+			"\t\t${1:node}",
+			"```"
+		],
+		"description": "snippet-description"
 	}
 }
