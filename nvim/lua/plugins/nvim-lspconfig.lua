@@ -9,5 +9,5 @@ return {
 	"hrsh7th/cmp-buffer",
 	"saadparwaiz1/cmp_luasnip",
 	"L3MON4D3/LuaSnip",
-	"rafamadriz/friendly-snippets"
+	"rafamadriz/friendly-snippets",
 }

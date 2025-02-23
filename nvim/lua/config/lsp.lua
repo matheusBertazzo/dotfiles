@@ -168,5 +168,17 @@ cmp.setup({
 				fallback()
 			end
 		end, { 'i', 's' }),
+
+		['<C-l>'] = cmp.mapping(function(fallback)
+			if luasnip.choice_active() then
+				luasnip.change_choice(1)
+			end
+		end, { 'i', 's' }),
+
+		['<C-h>'] = cmp.mapping(function(fallback)
+			if luasnip.choice_active() then
+				luasnip.change_choice(-1)
+			end
+		end, { 'i', 's' }),
 	},
 })
