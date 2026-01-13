@@ -10,7 +10,10 @@ require('mini.comment').setup({
 	}
 })
 
-require('mini.move').setup({})
+local keymap_helper = require('config.utils.keymap-helper')
+require('mini.move').setup({
+	mappings = keymap_helper.get_keymaps_for('mini.move')
+})
 
 require('mini.pairs').setup({})
 
@@ -25,4 +28,3 @@ require('mini.jump').setup({})
 
 -- FIXME: Solve conflict with the "s" keymap.
 -- require('mini.surround').setup({})
-
