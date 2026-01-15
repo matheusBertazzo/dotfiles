@@ -1,1 +1,5 @@
+## On Linux
 PS1='\n[\D{%d/%m/%Y} \t] \[\e[38;5;99m\]\u@\h\[\e[0m\] in \[\e[38;5;153m\]\w\[\e[0m\] \$ '
+
+## On Macbook (OSX)
+export PS1=$'\n[%D{%d/%m/%Y} %T] %F{099}%n@%m%f in %F{153}%~%f %# '
