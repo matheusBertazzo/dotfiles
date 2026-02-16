@@ -3,6 +3,7 @@ require('config.keymaps')
 require('config.auto-commands')
 require('config.lazy')
 require('setup.telescope')
+require('setup.tree-sitter')
 require('config.lsp')
 require('config.mini')
 
