@@ -104,7 +104,9 @@ return {
 				-- Disable mouse keymaps
 				-- add_keymap('<2-LeftMouse>', api.node.open.edit, 'Open')
 				-- add_keymap('<2-RightMouse>', api.tree.change_root_to_node, 'CD')
-			end
+			end,
+			git = { ignore = false },
+			filters = { dotfiles = false }
 		})
 	end,
 }
