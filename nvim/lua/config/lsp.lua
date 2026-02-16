@@ -24,10 +24,8 @@ local servers = {
 	eslint = {},
 	ts_ls = {},
 	jdtls = {},
-	yamlls = {}
-	-- jsonls = {},
-	-- pylsp = {},
-	-- sqls = {},
+	yamlls = {},
+	pyright = {},
 }
 
 require("mason-lspconfig").setup {
@@ -56,12 +54,30 @@ vim.api.nvim_create_autocmd('LspAttach', {
 			vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
 		end
 
+		local get_function = function(func, opts)
+			return function()
+				func(opts)
+			end
+		end
+
 		-- Telescope lsp built-ins documentation: https://github.com/nvim-telescope/telescope.nvim?tab=readme-ov-file#neovim-lsp-pickers
 		-- Jump to the definition
-		map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+		map(
+			'gd',
+			get_function(
+				require('telescope.builtin').lsp_definitions,
+				{ jump_type = "tab", reuse_win = true }
+			),
+			'[G]oto [D]efinition'
+		)
 
 		-- Lists all the implementations for the symbol under the cursor
-		map('gi', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementations')
+		map('gi',
+			get_function(
+				require('telescope.builtin').lsp_implementations,
+				{ jump_type = "tab", reuse_win = true }
+			),
+			'[G]oto [I]mplementations')
 
 		-- Fuzzy find all the symbols in your current document.
 		map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
@@ -70,7 +86,14 @@ vim.api.nvim_create_autocmd('LspAttach', {
 		map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
 		-- Lists all the references
-		map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+		map(
+			'gr',
+			get_function(
+				require('telescope.builtin').lsp_references,
+				{ jump_type = "tab", reuse_win = true }
+			),
+			'[G]oto [R]eferences'
+		)
 
 		-- Displays hover information about the symbol under the cursor
 		map('K', vim.lsp.buf.hover, 'Displays hover information for the symbol under the cursor')

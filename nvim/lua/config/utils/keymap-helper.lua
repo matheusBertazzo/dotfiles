@@ -14,6 +14,20 @@ function helper.get_keymaps_for(plugin_name)
 				line_up = '˚'
 			},
 			default = {}
+		},
+		['tabs'] = {
+			osx = { '¡', '™', '£', '¢', '∞', '§', '¶', '•', 'ª' },
+			default = {
+				'<A-1>',
+				'<A-2>',
+				'<A-3>',
+				'<A-4>',
+				'<A-5>',
+				'<A-6>',
+				'<A-7>',
+				'<A-8>',
+				'<A-9>',
+			}
 		}
 	}
 
