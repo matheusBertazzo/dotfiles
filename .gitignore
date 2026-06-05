@@ -1,2 +1,6 @@
 /tmux/plugins/
 /node_modules/
+private/
+
+# MacOS
+.DS_Store

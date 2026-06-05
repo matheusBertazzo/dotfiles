@@ -27,6 +27,12 @@
 					"json"
 				],
 				"path": "./json.json"
+			},
+			{
+				"language": [
+					"yaml"
+				],
+				"path": "./private/yaml.json"
 			}
 		]
 	}
