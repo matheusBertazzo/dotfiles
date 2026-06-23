@@ -5,12 +5,6 @@ require("mason").setup()
 --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
 --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
 
-require('cmp').setup {
-	sources = {
-		{ name = 'nvim_lsp' }
-	}
-}
-
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
@@ -23,7 +17,6 @@ local servers = {
 	html = {},
 	eslint = {},
 	ts_ls = {},
-	jdtls = {},
 	yamlls = {},
 	pyright = {},
 }
@@ -32,14 +25,15 @@ require("mason-lspconfig").setup {
 	ensure_installed = vim.tbl_keys(servers or {}),
 	handlers = {
 		function(server_name)
-			local server = servers[server_name] or {}
+			-- Java is handled separately in lua/plugins/java-jdtls.lua
+			if server_name == 'jdtls' then
+				return
+			end
 
-			-- This handles overriding only values explicitly passed
-			-- by the server configuration above. Useful when disabling
-			-- certain features of an LSP (for example, turning off formatting for ts_ls)
+			local server = servers[server_name] or {}
 			server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
 			require('lspconfig')[server_name].setup(server)
-		end
+		end,
 	},
 }
 
