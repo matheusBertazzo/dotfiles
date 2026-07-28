@@ -1,4 +1,10 @@
-## ADDED Requirements
+# treesitter-configuration
+
+## Purpose
+
+Defines how TreeSitter parsers are pinned, installed, and started per filetype in this Neovim configuration (using nvim-treesitter's `main`-branch API on Neovim 0.11), and the editing features layered on top: textobjects (select and move) and structural folding.
+
+## Requirements
 
 ### Requirement: Parser branch is pinned to match the API in use
 
@@ -28,33 +34,57 @@ The setup SHALL resolve a buffer's TreeSitter language via `vim.treesitter.langu
 - **WHEN** a buffer whose filetype equals its TreeSitter language name is opened (e.g. `lua`)
 - **THEN** that language is resolved and highlighting starts as before
 
-### Requirement: Highlighting starts after lazy installation
+### Requirement: Highlighting renders after lazy installation
 
-When a parser is not yet installed and is installed lazily on first open, the setup SHALL start TreeSitter for that buffer once the asynchronous installation completes, without requiring the user to reopen the buffer.
+When a parser is not yet installed and is installed lazily on first open, the setup SHALL cause TreeSitter highlighting to be **visibly applied** to that buffer once the asynchronous installation completes, without requiring the user to reopen the buffer or restart Neovim. Because a runtime install writes query files without changing `runtimepath` (leaving Neovim's memoized highlight-query miss cached), the setup SHALL invalidate the query cache so the highlighter reads the newly installed queries.
 
 #### Scenario: First open of an uninstalled language
 
 - **WHEN** a buffer is opened for a language whose parser is not yet installed
-- **THEN** the parser is installed and TreeSitter highlighting starts for that buffer once installation finishes
+- **THEN** the parser is installed and, once installation finishes, the buffer is visibly highlighted (a real highlights query is loaded, not a stale nil) without a reopen or restart
 
 #### Scenario: Already-installed language
 
 - **WHEN** a buffer is opened for a language whose parser is already installed
 - **THEN** TreeSitter highlighting starts immediately without reinstalling
 
+#### Scenario: Modified buffer during install
+
+- **WHEN** an asynchronous install completes while the triggering buffer has unsaved changes
+- **THEN** the setup does not reload the buffer (to avoid discarding changes) and still starts the highlighter
+
 ### Requirement: TreeSitter textobjects are available
 
-The configuration SHALL install and configure `nvim-treesitter-textobjects` (`main` branch) and provide keymaps to select TreeSitter textobjects (at minimum function and class, inner and outer).
+The configuration SHALL install and configure `nvim-treesitter-textobjects` (`main` branch) and provide keymaps for:
+- **Select** (`{x, o}` modes): function (`af`/`if`), class (`ac`/`ic`), and parameter/argument (`aa`/`ia`), inner and outer.
+- **Move** (`{n, x, o}` modes): next/previous function start (`]f`/`[f`) and next/previous class start (`]C`/`[C`).
+
+Class-navigation SHALL use `]C`/`[C` (capitalized) to avoid shadowing Vim's built-in diff-mode `]c`/`[c` motions.
 
 #### Scenario: Select a function textobject
 
-- **WHEN** the user triggers the "outer function" textobject in a supported buffer
+- **WHEN** the user triggers the "outer function" textobject (`af`) in a supported buffer
 - **THEN** the enclosing function region is selected
 
 #### Scenario: Select a class textobject
 
-- **WHEN** the user triggers the "inner class" textobject in a supported buffer
+- **WHEN** the user triggers the "inner class" textobject (`ic`) in a supported buffer
 - **THEN** the inner class region is selected
+
+#### Scenario: Select a parameter textobject
+
+- **WHEN** the user triggers the "inner parameter" textobject (`ia`) on an argument in a supported buffer
+- **THEN** the argument under the cursor is selected
+
+#### Scenario: Move to the next function
+
+- **WHEN** the user presses `]f` in a supported buffer
+- **THEN** the cursor moves to the start of the next function
+
+#### Scenario: Move to the previous class
+
+- **WHEN** the user presses `[C` in a supported buffer
+- **THEN** the cursor moves to the start of the previous class, leaving diff-mode `[c` unaffected
 
 ### Requirement: Structural folding uses TreeSitter
 

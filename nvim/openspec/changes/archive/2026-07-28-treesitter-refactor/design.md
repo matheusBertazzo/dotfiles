@@ -37,12 +37,14 @@ In the FileType autocmd, compute `local lang = vim.treesitter.language.get_lang(
 - **Why**: `filetype` is not always the parser name (`typescriptreact→tsx`, `sh→bash`); the current direct comparison silently skips those buffers.
 - **Alternative considered**: a hand-maintained filetype→lang table. Rejected — `get_lang` is the built-in, always-current mapping.
 
-### Decision: Start highlighting after async install completes
+### Decision: After async install, clear the query cache, then reload the buffer
 
-When `lang` is available but not installed, call `ts.install({ lang })` and start TreeSitter in its completion callback (e.g. `ts.install({ lang }):await(...)` or the install API's callback), guarded to the originating buffer if still valid.
+When `lang` is available but not installed, call `ts.install({ lang }):await(vim.schedule_wrap(...))`. In the callback: (1) clear Neovim's memoized query cache via `vim.treesitter.query.get:clear()` (under `pcall`), then (2) reload the unmodified buffer via `vim.api.nvim_buf_call(buf, function() vim.cmd('edit') end)`.
 
-- **Why**: the install is asynchronous; without a callback, the first open of a new language shows no highlighting until reopen.
-- **Risk**: buffer may be gone by completion — guard with `vim.api.nvim_buf_is_valid` and only start if the current filetype still matches.
+- **Root cause (verified)**: `vim.treesitter.query.get(lang, 'highlights')` returns `nil` on a miss and is memoized. Neovim only invalidates that cache from its `nvim.treesitter.query_cache_reset` autocmd, which fires on `OptionSet runtimepath`. A runtime parser install writes the query files into a directory that is *already* on `runtimepath`, so rtp never changes and the cached `nil` miss survives. The highlighter then attaches (`highlighter.active[buf]` is non-nil) but has no highlights query → the buffer renders as plain white text. Only a full restart (fresh cache) fixed it — which is why an in-session `:edit` reload alone did not. Confirmed: `query.get` stays `nil` after install, and `vim.treesitter.query.get:clear()` restores a real Query object.
+- **Why the rtp nudge does not work**: assigning `runtimepath` to its current value does not fire `OptionSet` (Neovim fires it only on an actual value change), so it does not trigger the reset. The direct `get:clear()` — exactly what Neovim's own reset autocmd calls — is used instead, guarded by `pcall`.
+- **Why still reload the buffer**: after clearing the cache, re-`:edit` on the unmodified buffer re-runs this handler on the "already installed" path, creating a fresh highlighter that reads the now-present query and repainting the buffer wholesale (identical to reopening the file). End-to-end test with a force-poisoned cache ends with `hl_active = true` and `query_present = true`.
+- **Risk**: cannot safely reload a modified buffer — guard on `vim.bo[buf].modified` and fall back to `start()`. `get:clear()` is not a documented public API — call under `pcall`. Guard on buffer validity + filetype recheck for the stale/reused case.
 
 ### Decision: Folding via core `vim.treesitter.foldexpr()`, set per-buffer on start
 
@@ -76,4 +78,4 @@ Add the plugin pinned to `branch = 'main'`, call its `setup{}`, and define selec
 
 ## Open Questions
 
-- Which textobject keymaps beyond `af/if/ac/ic` do you want (parameter `aa/ia`, swap-parameter, move-to-next-function)? Default: start with function/class only; add more later.
+- Resolved: textobjects scope is Tier 1 + 2 — SELECT `af/if`, `ac/ic`, `aa/ia`; MOVE `]f/[f` (function) and `]C/[C` (class, capitalized to preserve diff-mode `]c/[c`). Swap and LSP-interop deferred.
