@@ -4,10 +4,14 @@ require("mason").setup()
 --  By default, Neovim doesn't support everything that is in the LSP specification.
 --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
 --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
+--
+-- Neovim 0.11 native LSP config: capabilities are broadcast via vim.lsp.config('*'),
+-- per-server settings via vim.lsp.config(<name>), and mason-lspconfig enables installed
+-- servers through vim.lsp.enable() (its default automatic_enable behaviour).
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
-
+-- Per-server overrides. lua_ls intentionally has no settings here: lazydev.nvim owns the
+-- Neovim runtime library injection, which supplies both the `vim` global and vim.* types.
 local servers = {
 	lua_ls = {},
 	angularls = {},
@@ -21,20 +25,17 @@ local servers = {
 	pyright = {},
 }
 
-require("mason-lspconfig").setup {
-	ensure_installed = vim.tbl_keys(servers or {}),
-	handlers = {
-		function(server_name)
-			-- Java is handled separately in lua/plugins/java-jdtls.lua
-			if server_name == 'jdtls' then
-				return
-			end
+-- Broadcast capabilities to every server, then layer per-server overrides on top.
+-- These must run before mason-lspconfig.setup(), which triggers vim.lsp.enable().
+vim.lsp.config('*', { capabilities = capabilities })
+for name, cfg in pairs(servers) do
+	vim.lsp.config(name, cfg)
+end
 
-			local server = servers[server_name] or {}
-			server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-			require('lspconfig')[server_name].setup(server)
-		end,
-	},
+-- Java (jdtls) is not in `servers`; it is driven separately by lua/plugins/java-jdtls.lua,
+-- so it is naturally excluded from ensure_installed and automatic_enable here.
+require("mason-lspconfig").setup {
+	ensure_installed = vim.tbl_keys(servers),
 }
 
 -- LSP Auto commands
@@ -99,10 +100,10 @@ vim.api.nvim_create_autocmd('LspAttach', {
 		map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
 
 		-- Move to the previous diagnostic
-		map('[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>', '[G]oto []')
+		map('[d', function() vim.diagnostic.jump({ count = -1 }) end, 'Goto previous diagnostic')
 
 		-- Move to the next diagnostic
-		map(']d', '<cmd>lua vim.diagnostic.goto_next()<cr>', '[G]oto []')
+		map(']d', function() vim.diagnostic.jump({ count = 1 }) end, 'Goto next diagnostic')
 
 		-- Displays a function's signature information
 		map('gs', '<cmd>lua vim.lsp.buf.signature_help()<cr>', '[G]oto function [S]ignature')
@@ -132,6 +133,7 @@ cmp.setup({
 		end
 	},
 	sources = {
+		{ name = 'lazydev',       group_index = 0 }, -- require("...") module-path completion in Lua
 		{ name = 'path' },
 		{ name = 'nvim_lsp',      keyword_length = 1 },
 		{ name = 'buffer',        keyword_length = 3 },
