@@ -1,14 +1,6 @@
 -- TODO: Define better keymaps for these plugins
 
-require('mini.comment').setup({
-
-	mappings = {
-		comment = '<leader>cc',
-		comment_line = '<leader>cl',
-		comment_visual = '<leader>cc',
-		text_object = '<leader>cc'
-	}
-})
+-- Commenting is provided by Neovim's built-in gc/gcc operators (0.10+).
 
 local keymap_helper = require('config.utils.keymap-helper')
 require('mini.move').setup({

@@ -1,7 +1,7 @@
 -- Docs: https://vonheikemen.github.io/devlog/tools/setup-nvim-lspconfig-plus-nvim-cmp/
 return {
-	"williamboman/mason.nvim",
-	"williamboman/mason-lspconfig.nvim",
+	"mason-org/mason.nvim",
+	"mason-org/mason-lspconfig.nvim",
 	"neovim/nvim-lspconfig",
 	"hrsh7th/cmp-nvim-lsp",
 	"hrsh7th/cmp-path",

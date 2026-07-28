@@ -3,7 +3,6 @@ return {
 	event = "VimEnter",
 	dependencies = {
 		'echasnovski/mini.icons',
-		'nvim-tree/nvim-web-devicons',
 	},
 	opts = {
 		-- your configuration comes here
