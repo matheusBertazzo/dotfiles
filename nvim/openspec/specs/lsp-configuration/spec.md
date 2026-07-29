@@ -8,7 +8,7 @@ Defines how language servers are configured, given client capabilities, and enab
 
 ### Requirement: Client capabilities broadcast to all servers
 
-The configuration SHALL construct client capabilities from `cmp_nvim_lsp.default_capabilities()` and broadcast them to every language server using the Neovim 0.11 native `vim.lsp.config('*', { capabilities = ... })` mechanism, so that all servers receive the enhanced capabilities (including LSP snippet support and completion-item resolve).
+The configuration SHALL construct client capabilities from `require('blink.cmp').get_lsp_capabilities()` and broadcast them to every language server using the Neovim 0.11 native `vim.lsp.config('*', { capabilities = ... })` mechanism, so that all servers receive the enhanced capabilities (including LSP snippet support and completion-item resolve).
 
 #### Scenario: Capabilities reach an active server
 
@@ -61,15 +61,6 @@ The configuration SHALL rely on `lazydev.nvim` to provide the Neovim `vim` globa
 
 - **WHEN** the user types `vim.api.nvim_` in a Lua buffer
 - **THEN** completion candidates for the Neovim API are offered
-
-### Requirement: lazydev completion source is active in nvim-cmp
-
-The configuration SHALL register the `lazydev` completion source in the nvim-cmp `sources` list with `group_index = 0`, so that `require("...")` module-path completion provided by lazydev is available.
-
-#### Scenario: Require path completes
-
-- **WHEN** the user types a `require("...")` module path in a Lua buffer
-- **THEN** module-path candidates from lazydev are offered in the completion menu
 
 ### Requirement: Diagnostic navigation uses non-deprecated API
 

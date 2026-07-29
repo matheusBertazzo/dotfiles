@@ -8,7 +8,7 @@ require("mason").setup()
 -- Neovim 0.11 native LSP config: capabilities are broadcast via vim.lsp.config('*'),
 -- per-server settings via vim.lsp.config(<name>), and mason-lspconfig enables installed
 -- servers through vim.lsp.enable() (its default automatic_enable behaviour).
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
+local capabilities = require('blink.cmp').get_lsp_capabilities()
 
 -- Per-server overrides. lua_ls intentionally has no settings here: lazydev.nvim owns the
 -- Neovim runtime library injection, which supplies both the `vim` global and vim.* types.
@@ -113,91 +113,30 @@ vim.api.nvim_create_autocmd('LspAttach', {
 	end
 })
 
--- Snippets engine
+-- Snippets engine. blink.cmp uses LuaSnip as its snippet provider (see
+-- lua/plugins/blink.lua); these loaders make the custom vscode-style snippets available.
 require('luasnip.loaders.from_vscode').lazy_load({
 	paths = '~/.config/nvim/snippets/vscode'
 })
 require('luasnip.loaders.from_vscode').lazy_load()
 
--- Autocomplete configuration
-vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
-
-local cmp = require('cmp')
+-- LuaSnip choice-node cycling. Set here (not in blink's keymap table) so it works in
+-- both insert and select mode -- blink only applies its built-in snippet commands in
+-- select mode, where choice nodes are active. NOTE: these must NOT be expr mappings --
+-- change_choice() modifies the buffer, which is forbidden under an expr mapping's
+-- textlock. When no choice is active, fall through to the key's default behavior
+-- (so <C-h> still deletes the previous char) via feedkeys.
 local luasnip = require('luasnip')
-local select_opts = { behavior = cmp.SelectBehavior.Select }
-
-cmp.setup({
-	snippet = {
-		expand = function(args)
-			luasnip.lsp_expand(args.body)
+local function cycle_choice(direction, key)
+	return function()
+		if luasnip.choice_active() then
+			luasnip.change_choice(direction)
+		else
+			vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(key, true, false, true), 'n', false)
 		end
-	},
-	sources = {
-		{ name = 'lazydev',       group_index = 0 }, -- require("...") module-path completion in Lua
-		{ name = 'path' },
-		{ name = 'nvim_lsp',      keyword_length = 1 },
-		{ name = 'buffer',        keyword_length = 3 },
-		{ name = 'luasnip',       keyword_length = 2 },
-		{ name = 'luasnip_choice' },
-	},
-	window = {
-		documentation = cmp.config.window.bordered()
-	},
-	formatting = {
-		fields = { 'menu', 'abbr', 'kind' },
-		format = function(entry, item)
-			local menu_icon = {
-				nvim_lsp = 'λ',
-				luasnip = '⋗',
-				luasnip_choice = '⋗',
-				buffer = 'Ω',
-				path = '🖫',
-			}
+	end
+end
+vim.keymap.set({ 'i', 's' }, '<C-l>', cycle_choice(1, '<C-l>'), { desc = 'LuaSnip: next choice' })
+vim.keymap.set({ 'i', 's' }, '<C-h>', cycle_choice(-1, '<C-h>'), { desc = 'LuaSnip: previous choice' })
 
-			item.menu = menu_icon[entry.source.name]
-			return item
-		end,
-	},
-	mapping = {
-		['<Up>'] = cmp.mapping.select_prev_item(select_opts),
-		['<Down>'] = cmp.mapping.select_next_item(select_opts),
-
-		['<S-Tab>'] = cmp.mapping.select_prev_item(select_opts),
-		['<Tab>'] = cmp.mapping.select_next_item(select_opts),
-
-		['<C-u>'] = cmp.mapping.scroll_docs(-4),
-		['<C-d>'] = cmp.mapping.scroll_docs(4),
-
-		['<C-e>'] = cmp.mapping.abort(),
-		['<C-y>'] = cmp.mapping.confirm({ select = true }),
-		['<CR>'] = cmp.mapping.confirm({ select = false }),
-
-		['<C-n>'] = cmp.mapping(function(fallback)
-			if luasnip.jumpable(1) then
-				luasnip.jump(1)
-			else
-				fallback()
-			end
-		end, { 'i', 's' }),
-
-		['<C-p>'] = cmp.mapping(function(fallback)
-			if luasnip.jumpable(-1) then
-				luasnip.jump(-1)
-			else
-				fallback()
-			end
-		end, { 'i', 's' }),
-
-		['<C-l>'] = cmp.mapping(function(fallback)
-			if luasnip.choice_active() then
-				luasnip.change_choice(1)
-			end
-		end, { 'i', 's' }),
-
-		['<C-h>'] = cmp.mapping(function(fallback)
-			if luasnip.choice_active() then
-				luasnip.change_choice(-1)
-			end
-		end, { 'i', 's' }),
-	},
-})
+-- Completion itself (sources, keymaps, menu) is configured in lua/plugins/blink.lua.

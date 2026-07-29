@@ -48,9 +48,10 @@ Use a custom blink `keymap` table (base off the `default` preset) mapping to the
 | hide/abort | `<C-e>` | `hide` |
 | scroll docs | `<C-u>`/`<C-d>` | `scroll_documentation_up`/`_down` |
 | snippet jump | `<C-n>`/`<C-p>` | `snippet_forward`/`snippet_backward` |
-| luasnip choice | `<C-l>`/`<C-h>` | custom fn calling `luasnip.change_choice` |
+| luasnip choice | `<C-l>`/`<C-h>` | standalone `{i,s}` LuaSnip keymaps (NOT blink) |
 
-- **Trade-off**: `<C-n>`/`<C-p>` were snippet-jump in the old config (unusual — normally menu nav). Preserving them as snippet jump keeps muscle memory; the menu uses Tab/arrows. Confirm with the user if they'd rather adopt a stock preset.
+- **Trade-off**: `<C-n>`/`<C-p>` were snippet-jump in the old config (unusual — normally menu nav). Preserving them as snippet jump keeps muscle memory; the menu uses Tab/arrows.
+- **Choice nodes must be standalone, and must NOT be expr mappings**: blink only applies its built-in snippet commands (not custom functions) in select mode (`keymap/apply.lua`), which is where LuaSnip choice nodes are active. So `<C-l>`/`<C-h>` are set as standalone `vim.keymap.set({'i','s'}, ...)` in `lua/config/lsp.lua`. They must be plain (non-`expr`) callbacks: `luasnip.change_choice()` modifies the buffer, which is forbidden under an `expr` mapping's textlock (an earlier `expr` attempt silently no-op'd the cycling and fed a literal `^L`). When no choice is active, the callback falls through via `nvim_feedkeys(<key>, 'n', ...)` so `<C-h>` still deletes the previous char and `<C-l>` does nothing (i_CTRL-L is unused).
 
 ### Decision: Pin blink to a tagged release
 
