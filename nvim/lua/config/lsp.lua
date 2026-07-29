@@ -32,10 +32,14 @@ for name, cfg in pairs(servers) do
 	vim.lsp.config(name, cfg)
 end
 
--- Java (jdtls) is not in `servers`; it is driven separately by lua/plugins/java-jdtls.lua,
--- so it is naturally excluded from ensure_installed and automatic_enable here.
+-- `automatic_enable` enables EVERY server installed in Mason via vim.lsp.enable(),
+-- not just those in `ensure_installed`. Java is driven separately by
+-- lua/plugins/java-jdtls.lua (nvim-jdtls), and the `jdtls` package is installed in
+-- Mason, so without this exclusion mason-lspconfig would auto-start a second JDTLS
+-- client alongside nvim-jdtls -- hence the explicit `exclude`.
 require("mason-lspconfig").setup {
 	ensure_installed = vim.tbl_keys(servers),
+	automatic_enable = { exclude = { "jdtls" } },
 }
 
 -- LSP Auto commands
