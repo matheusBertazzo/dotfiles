@@ -13,8 +13,12 @@ require('mini.splitjoin').setup({})
 
 require('mini.trailspace').setup({})
 
--- TODO: Solve minor conflicts with the "i" keymap.
-require('mini.indentscope').setup({})
+require('mini.indentscope').setup({
+	mappings = {
+		object_scope = '',
+		object_scope_with_border = ''
+	}
+})
 
 require('mini.jump').setup({})
 
