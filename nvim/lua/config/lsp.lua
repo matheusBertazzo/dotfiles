@@ -118,10 +118,12 @@ vim.api.nvim_create_autocmd('LspAttach', {
 })
 
 -- Snippets engine. blink.cmp uses LuaSnip as its snippet provider (see
--- lua/plugins/blink.lua); these loaders make the custom vscode-style snippets available.
+-- lua/plugins/blink.lua); this loader make the custom vscode-style snippets available.
 require('luasnip.loaders.from_vscode').lazy_load({
 	paths = '~/.config/nvim/snippets/vscode'
 })
+
+-- This loader makes runtime snippets available
 require('luasnip.loaders.from_vscode').lazy_load()
 
 -- LuaSnip choice-node cycling. Set here (not in blink's keymap table) so it works in
