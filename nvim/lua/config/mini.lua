@@ -22,5 +22,4 @@ require('mini.indentscope').setup({
 
 require('mini.jump').setup({})
 
--- FIXME: Solve conflict with the "s" keymap.
--- require('mini.surround').setup({})
+require('mini.surround').setup({})
