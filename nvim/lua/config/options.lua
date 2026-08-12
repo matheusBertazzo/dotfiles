@@ -21,6 +21,9 @@ vim.opt.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
 
+-- Wrap long lines (Neovim's default; set explicitly so it can't be silently overridden)
+vim.opt.wrap = true
+
 -- Enable break indent
 vim.opt.breakindent = true
 
