@@ -4,14 +4,7 @@ return {
 	opts = {
 		global_keymaps = false,
 		lsp = {
-			formatter = {
-				sort = {
-					metadata = false,
-					variables = false,
-					commands = false,
-					json = false
-				}
-			}
+			formatter = false
 		}
 	},
 	config = function(_, opts)
