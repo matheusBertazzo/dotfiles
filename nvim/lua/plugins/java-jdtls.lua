@@ -8,9 +8,59 @@ return {
 		local home = os.getenv("HOME")
 		local jdtls_bin = home .. "/.local/share/nvim/mason/bin/jdtls"
 
+		-- Build files that mark a Maven/Gradle project directory (a "module" in a
+		-- multi-module build). `.git` is treated separately, as the VCS boundary.
+		local build_markers = { "pom.xml", "build.gradle", "build.gradle.kts" }
+
+		local function dir_has_build_marker(dir)
+			for _, marker in ipairs(build_markers) do
+				if vim.uv.fs_stat(vim.fs.joinpath(dir, marker)) then
+					return true
+				end
+			end
+			return false
+		end
+
+		-- Resolve the *outermost* project directory for a Java file, so every module of
+		-- a multi-module Maven/Gradle reactor maps to a single JDTLS root. nvim-jdtls's
+		-- own find_root stops at the *nearest* module's build file, which starts one
+		-- JDTLS server per module; because jdtls counts clients session-globally (see
+		-- jdtls/util.lua), that emits the "Multiple LSP clients ... resolveMainClass"
+		-- warning. We climb to the top of the contiguous build tree, never crossing the
+		-- VCS root, and prefer the VCS root when it is itself the reactor.
+		local function find_reactor_root(source)
+			local jdtls_setup = require("jdtls.setup")
+			local nearest_module = jdtls_setup.find_root(build_markers, source)
+			local git_root = jdtls_setup.find_root({ ".git" }, source)
+
+			-- No build file at all: fall back to the VCS root (may be nil -> no server).
+			if not nearest_module then
+				return git_root
+			end
+
+			-- Climb while each parent is still part of the same build, never crossing
+			-- the VCS root (a nested .git marks a separate repo, e.g. a git submodule).
+			local root = nearest_module
+			while root ~= git_root do
+				local parent = vim.fs.dirname(root)
+				if not parent or parent == root or not dir_has_build_marker(parent) then
+					break
+				end
+				root = parent
+			end
+
+			-- A Maven reactor's top pom.xml and .git usually coincide; when the VCS root
+			-- is itself a project directory, treat it as the reactor root. An unrelated
+			-- monorepo whose VCS root has no build file is left untouched.
+			if git_root and dir_has_build_marker(git_root) then
+				return git_root
+			end
+			return root
+		end
+
 		local function setup_jdtls()
 			local workspace_path = home .. "/.local/share/nvim/jdtls-workspace/"
-			local root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew", "pom.xml", "build.gradle" })
+			local root_dir = find_reactor_root(vim.api.nvim_buf_get_name(0))
 
 			-- If we can't find a root, we probably shouldn't start jdtls
 			if not root_dir or root_dir == "" then
