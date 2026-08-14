@@ -15,5 +15,9 @@ return {
 	},
 	opts = {
 		enhanced_diff_hl = true,
+		view = {
+			default = { disable_diagnostics = true },
+			file_history = { disable_diagnostics = true },
+		},
 	},
 }

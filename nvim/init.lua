@@ -1,6 +1,7 @@
 require('config.options')
 require('config.keymaps')
 require('config.auto-commands')
+require('config.large-files')
 require('config.lazy')
 require('setup.telescope')
 require('setup.tree-sitter')

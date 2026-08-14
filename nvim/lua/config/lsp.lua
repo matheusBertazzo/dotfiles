@@ -25,11 +25,28 @@ local servers = {
 	pyright = {},
 }
 
+local function allow_small_buffers(config)
+	local root_dir = config.root_dir
+	config.root_dir = function(bufnr, on_dir)
+		if vim.b[bufnr].large_file then
+			return
+		end
+
+		if type(root_dir) == 'function' then
+			root_dir(bufnr, on_dir)
+		else
+			on_dir(root_dir or vim.fs.root(bufnr, config.root_markers or {}) or vim.fn.getcwd())
+		end
+	end
+
+	return config
+end
+
 -- Broadcast capabilities to every server, then layer per-server overrides on top.
 -- These must run before mason-lspconfig.setup(), which triggers vim.lsp.enable().
 vim.lsp.config('*', { capabilities = capabilities })
 for name, cfg in pairs(servers) do
-	vim.lsp.config(name, cfg)
+	vim.lsp.config(name, allow_small_buffers(vim.tbl_deep_extend('force', vim.lsp.config[name] or {}, cfg)))
 end
 
 -- `automatic_enable` enables EVERY server installed in Mason via vim.lsp.enable(),

@@ -53,3 +53,6 @@ vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 999
+
+-- Neovim's default linematch pass becomes prohibitively expensive on large generated diffs.
+vim.opt.diffopt = { 'internal', 'filler', 'closeoff' }
